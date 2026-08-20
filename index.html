@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GIACO MINO</title>
+<meta name="description" content="Hand-crafted, repurposed garments. Made one at a time in Copenhagen. 1 of 1.">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --paper: #f2f0ea;
+    --ink: #0d0d0d;
+    --muted: rgba(13,13,13,0.55);
+  }
+
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: var(--ink);
+    color: var(--paper);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ==========================================================
+     VIEW SWITCHING
+     One file, two views. The SHOP button shows the shop view,
+     Back returns to the landing view.
+     ========================================================== */
+  .view { display: none; }
+  body[data-view="home"] #home { display: block; }
+  body[data-view="shop"] #shop { display: block; }
+
+  body[data-view="shop"] { background: var(--paper); color: var(--ink); }
+
+  /* ==========================================================
+     HOME
+     ========================================================== */
+  #home { height: 100vh; height: 100dvh; }
+
+  .media {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    filter: grayscale(100%);
+  }
+
+  .veil {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.25) 0%,
+      rgba(0,0,0,0.05) 40%,
+      rgba(0,0,0,0.45) 100%
+    );
+  }
+
+  .logo {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(420px, 72vw);
+    height: auto;
+    display: block;
+    z-index: 3;
+  }
+
+  /* ---- SHOP button ---- */
+  .shop-btn {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: calc(min(420px, 72vw) * 0.26);   /* sits below the logo */
+    z-index: 4;
+    color: var(--paper);
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 13px 42px;
+    border: 1px solid rgba(242,240,234,0.85);
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  .shop-btn:hover {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .home-bottom {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 5vh;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 0 24px;
+    text-align: center;
+  }
+
+  /* ---- Signup ---- */
+  form {
+    display: flex;
+    width: min(400px, 100%);
+    border-bottom: 1px solid rgba(242,240,234,0.6);
+  }
+
+  input[type="email"] {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--paper);
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    padding: 12px 4px;
+  }
+
+  input[type="email"]::placeholder {
+    color: rgba(242,240,234,0.55);
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+  }
+
+  form button {
+    background: transparent;
+    border: none;
+    color: var(--paper);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 12px 4px;
+    font-family: inherit;
+  }
+
+  form button:hover { opacity: 0.6; }
+
+  .msg {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    min-height: 16px;
+    color: rgba(242,240,234,0.85);
+  }
+
+  .one-of-one {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(242,240,234,0.7);
+  }
+
+  /* ==========================================================
+     SHOP
+     ========================================================== */
+  .top-fade {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 130px;
+    background: linear-gradient(to bottom, var(--paper) 55%, rgba(242,240,234,0));
+    z-index: 40;
+    pointer-events: none;
+  }
+
+  /* logo centered on the page — stays still while scrolling */
+  .mark {
+    position: fixed;
+    top: 26px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(190px, 42vw);
+    height: auto;
+    display: block;
+    z-index: 50;
+    cursor: pointer;
+  }
+
+  .back {
+    position: fixed;
+    top: 32px;
+    left: 28px;
+    z-index: 60;
+    color: var(--ink);
+    background: none;
+    border: none;
+    border-bottom: 1px solid rgba(13,13,13,0.4);
+    padding: 0 0 3px;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .back:hover { opacity: 0.55; }
+
+  .shop-inner { padding: 165px 28px 90px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 60px 28px;
+    max-width: 1500px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: repeat(2, 1fr); gap: 44px 18px; }
+  }
+
+  @media (max-width: 560px) {
+    .grid { grid-template-columns: 1fr; gap: 52px; }
+    .shop-inner { padding: 140px 20px 70px; }
+    .back { left: 20px; }
+  }
+
+  /* ---- Product ---- */
+  .gallery {
+    position: relative;
+    border: 1px solid var(--ink);      /* thin black outline */
+    background: #e8e5dd;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    touch-action: pan-y;
+  }
+
+  .track {
+    display: flex;
+    height: 100%;
+    transition: transform 0.4s ease;
+  }
+
+  .track img {
+    min-width: 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  .arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    background: rgba(242,240,234,0.9);
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    z-index: 3;
+  }
+
+  .gallery:hover .arrow { opacity: 1; }
+  .arrow.prev { left: 10px; }
+  .arrow.next { right: 10px; }
+
+  .dots {
+    position: absolute;
+    bottom: 12px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+    z-index: 3;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(242,240,234,0.55);
+    border: 1px solid rgba(13,13,13,0.5);
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .dot.active { background: var(--ink); }
+
+  .meta {
+    padding-top: 14px;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.9;
+  }
+
+  .meta .price { color: var(--muted); }
+
+  .shop-footer {
+    border-top: 1px solid rgba(13,13,13,0.14);
+    padding: 34px 28px 60px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+</style>
+</head>
+<body data-view="home">
+
+<!-- ==================== HOME ==================== -->
+<section class="view" id="home">
+  <video class="media" autoplay muted loop playsinline poster="assets/frontpage-2400.jpg">
+    <source src="assets/loop.mp4" type="video/mp4">
+    <img class="media" src="assets/frontpage-2400.jpg"
+         alt="Family gathered at a long table under a tree, Italy, 1960s.">
+  </video>
+
+  <div class="veil"></div>
+
+  <img class="logo" src="assets/logo-white.png" alt="GIACO MINO">
+
+  <button class="shop-btn" id="open-shop">Shop</button>
+
+  <div class="home-bottom">
+    <form id="signup" novalidate>
+      <input type="email" id="email" placeholder="Email" autocomplete="email" required>
+      <button type="submit">Notify me</button>
+    </form>
+    <p class="msg" id="msg"></p>
+    <p class="one-of-one">1 of 1.</p>
+  </div>
+</section>
+
+<!-- ==================== SHOP ==================== -->
+<section class="view" id="shop">
+  <div class="top-fade"></div>
+  <button class="back" id="close-shop">Back</button>
+  <img class="mark" id="mark" src="assets/logo-black.png" alt="GIACO MINO">
+
+  <div class="shop-inner">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <footer class="shop-footer">
+    <span>Giaco Mino — Copenhagen</span>
+    <span>1 of 1.</span>
+  </footer>
+</section>
+
+<script>
+  /* ==========================================================
+     PRODUCTS
+     One entry per garment. Images live in
+     assets/products/<slug>/ and show in listed order.
+     To add a piece: add a folder, then add an entry here.
+     ========================================================== */
+  const PRICE = "550,00 DKK";
+
+  const PRODUCTS = [
+    { slug: "abstract-shirt",    title: "Abstract Shirt",    images: ["01.jpg","02.jpg","03.jpg","04.jpg"] },
+    { slug: "green-shirt",       title: "Green Shirt",       images: ["01.jpg","02.jpg","03.jpg","04.jpg"] },
+    { slug: "green-shirt-2",     title: "Green Shirt 2",     images: ["01.jpg","02.jpg","03.jpg"] },
+    { slug: "red-shirt",         title: "Red Shirt",         images: ["01.jpg","02.jpg","03.jpg"] },
+    { slug: "shincino-crewneck", title: "Shincino Crewneck", images: ["01.jpg","02.jpg"] }
+  ];
+
+  /* ---- Build the grid ---- */
+  const grid = document.getElementById("grid");
+
+  PRODUCTS.forEach((p, idx) => {
+    const n = String(idx + 1).padStart(2, "0");
+    const el = document.createElement("article");
+    el.innerHTML = `
+      <div class="gallery">
+        <div class="track">
+          ${p.images.map((img, i) => `
+            <img src="assets/products/${p.slug}/${img}"
+                 loading="lazy"
+                 draggable="false"
+                 alt="${p.title} — view ${i + 1}">`).join("")}
+        </div>
+        ${p.images.length > 1 ? `
+          <button class="arrow prev" aria-label="Previous image">&#8249;</button>
+          <button class="arrow next" aria-label="Next image">&#8250;</button>
+          <div class="dots">
+            ${p.images.map((_, i) => `
+              <button class="dot ${i === 0 ? "active" : ""}" data-to="${i}"
+                      aria-label="Image ${i + 1}"></button>`).join("")}
+          </div>` : ""}
+      </div>
+      <div class="meta">
+        <div class="title">${n}. ${p.title}</div>
+        <div class="price">${PRICE}</div>
+      </div>`;
+    grid.appendChild(el);
+    setupGallery(el.querySelector(".gallery"), p.images.length);
+  });
+
+  /* ---- Swipeable gallery ---- */
+  function setupGallery(gallery, count) {
+    if (count < 2) return;
+
+    const track = gallery.querySelector(".track");
+    const dots  = [...gallery.querySelectorAll(".dot")];
+    let index = 0;
+
+    function go(i) {
+      index = Math.max(0, Math.min(count - 1, i));
+      track.style.transform = `translateX(-${index * 100}%)`;
+      dots.forEach((d, di) => d.classList.toggle("active", di === index));
+    }
+
+    gallery.querySelector(".prev").addEventListener("click", () => go(index - 1));
+    gallery.querySelector(".next").addEventListener("click", () => go(index + 1));
+    dots.forEach(d => d.addEventListener("click", () => go(+d.dataset.to)));
+
+    let startX = null, startY = null;
+    gallery.addEventListener("touchstart", e => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+
+    gallery.addEventListener("touchend", e => {
+      if (startX === null) return;
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+        go(dx < 0 ? index + 1 : index - 1);
+      }
+      startX = startY = null;
+    });
+
+    let downX = null;
+    gallery.addEventListener("mousedown", e => { downX = e.clientX; });
+    gallery.addEventListener("mouseup", e => {
+      if (downX === null) return;
+      const dx = e.clientX - downX;
+      if (Math.abs(dx) > 50) go(dx < 0 ? index + 1 : index - 1);
+      downX = null;
+    });
+  }
+
+  /* ==========================================================
+     VIEW SWITCHING
+     Uses the URL hash so the browser back button works
+     and #shop can be linked directly.
+     ========================================================== */
+  const video = document.querySelector("video");
+
+  function render() {
+    const shop = location.hash === "#shop";
+    document.body.dataset.view = shop ? "shop" : "home";
+    window.scrollTo(0, 0);
+    if (video) shop ? video.pause() : video.play().catch(() => {});
+  }
+
+  document.getElementById("open-shop").addEventListener("click", () => {
+    location.hash = "#shop";
+  });
+
+  document.getElementById("close-shop").addEventListener("click", () => {
+    history.pushState("", document.title, location.pathname + location.search);
+    render();
+  });
+
+  document.getElementById("mark").addEventListener("click", () => {
+    history.pushState("", document.title, location.pathname + location.search);
+    render();
+  });
+
+  window.addEventListener("hashchange", render);
+  render();
+
+  /* ==========================================================
+     KLAVIYO SETUP
+     1. Klaviyo → Settings → API Keys → copy the 6-character
+        Public API Key (site ID).
+     2. Create a List (e.g. "Launch") and copy its List ID.
+     3. Paste both below. The form goes live.
+     ========================================================== */
+  const KLAVIYO_PUBLIC_KEY = "";
+  const KLAVIYO_LIST_ID    = "";
+
+  const form = document.getElementById("signup");
+  const msg  = document.getElementById("msg");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value.trim();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      msg.textContent = "Enter a valid email.";
+      return;
+    }
+
+    if (!KLAVIYO_PUBLIC_KEY || !KLAVIYO_LIST_ID) {
+      msg.textContent = "Signup opens soon.";
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `https://a.klaviyo.com/client/subscriptions/?company_id=${KLAVIYO_PUBLIC_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "revision": "2024-10-15" },
+          body: JSON.stringify({
+            data: {
+              type: "subscription",
+              attributes: {
+                profile: { data: { type: "profile", attributes: { email } } }
+              },
+              relationships: { list: { data: { type: "list", id: KLAVIYO_LIST_ID } } }
+            }
+          })
+        }
+      );
+      if (res.ok || res.status === 202) {
+        form.style.display = "none";
+        msg.textContent = "Thank you.";
+      } else {
+        msg.textContent = "Something went wrong. Try again.";
+      }
+    } catch {
+      msg.textContent = "Something went wrong. Try again.";
+    }
+  });
+</script>
+</body>
+</html>
