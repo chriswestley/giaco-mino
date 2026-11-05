@@ -28,17 +28,37 @@
      ========================================================== */
   .view { display: none; }
   body[data-view="home"] #home { display: block; }
-  body[data-view="shop"] #shop { display: block; }
 
-  body[data-view="shop"] { background: var(--paper); color: var(--ink); }
+  body[data-view="withdraw"] #withdraw { display: block; position: relative; }
+  body[data-view="product"]  #product  { display: block; position: relative; }
+  body[data-view="about"]    #about    { display: block; position: relative; }
+  body[data-view="shipping"] #shipping { display: block; position: relative; }
+  body[data-view="terms"]    #terms    { display: block; position: relative; }
+  body[data-view="privacy"]  #privacy  { display: block; position: relative; }
+
+  body[data-view="product"],
+  body[data-view="withdraw"],
+  body[data-view="about"],
+  body[data-view="shipping"],
+  body[data-view="terms"],
+  body[data-view="privacy"] { background: var(--paper); color: var(--ink); }
 
   /* ==========================================================
      HOME
      ========================================================== */
-  #home { height: 100vh; height: 100dvh; }
+  /* Home is now one continuous scroll: hero, then the drop, then the
+     signup and footer. The hero is a single screen of it, not a locked
+     panel — so .media and .veil are absolute within .hero rather than
+     fixed to the viewport, or they would sit over the products too. */
+  .hero-wrap {
+    position: relative;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
 
   .media {
-    position: fixed;
+    position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
@@ -48,76 +68,135 @@
   }
 
   .veil {
-    position: fixed;
+    position: absolute;
     inset: 0;
     z-index: 1;
     background: linear-gradient(
       to bottom,
-      rgba(0,0,0,0.25) 0%,
-      rgba(0,0,0,0.05) 40%,
-      rgba(0,0,0,0.45) 100%
+      rgba(0,0,0,0.30) 0%,
+      rgba(0,0,0,0.20) 45%,
+      rgba(0,0,0,0.50) 100%
     );
   }
 
-  .logo {
-    position: fixed;
+  /* The hero stacks logo, countdown and SHOP in one centred column.
+     These used to be three separately fixed elements, each offset by a
+     hand-tuned multiple of the logo width; adding the countdown made the
+     button collide with the email block on a 768px-tall screen. A flex
+     column removes the magic numbers - add another element and the stack
+     just grows. */
+  .hero {
+    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: min(420px, 72vw);
-    height: auto;
-    display: block;
     z-index: 3;
-  }
-
-  /* ---- SHOP button ---- */
-  .shop-btn {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-top: calc(min(420px, 72vw) * 0.26);   /* sits below the logo */
-    z-index: 4;
-    color: var(--paper);
-    text-decoration: none;
-    font-size: 12px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    padding: 13px 42px;
-    border: 1px solid rgba(242,240,234,0.85);
-    background: transparent;
-    cursor: pointer;
-    font-family: inherit;
-    transition: background 0.3s ease, color 0.3s ease;
-  }
-
-  .shop-btn:hover {
-    background: var(--paper);
-    color: var(--ink);
-  }
-
-  .home-bottom {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 5vh;
-    z-index: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
-    padding: 0 24px;
-    text-align: center;
+    gap: 22px;
+    width: min(420px, 72vw);
   }
 
-  /* ---- Signup ---- */
-  form {
+  .hero-foot {
+    position: absolute;
+    bottom: 34px;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    display: flex;
+    justify-content: center;
+  }
+
+  .logo {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* ---- SHOP button ---- */
+  /* ---- Drop countdown ----
+     Sits in the gap between the logo and the SHOP button. Both are fixed
+     and centred on the viewport midpoint, offset by a multiple of the logo
+     width, so the countdown uses the same measure and the button is pushed
+     down by the countdown's own height. */
+  .countdown {
+    display: flex;
+    gap: 24px;
+    color: var(--paper);
+    font-variant-numeric: tabular-nums;   /* stops the digits jittering */
+  }
+
+  .countdown .unit { text-align: center; min-width: 42px; }
+
+  .countdown .n {
+    font-size: 23px;
+    line-height: 1;
+    letter-spacing: 0.04em;
+  }
+
+  /* Measured against the video: after the veil the background behind the
+     countdown sits at luminance 104-115 across the whole clip. At 9px and
+     55% opacity these labels came out around 2.4:1, which is not readable.
+     Brighter and a size up puts them level with the digits. */
+  .countdown .l {
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(242,240,234,0.85);
+    margin-top: 8px;
+  }
+
+  @media (max-width: 420px) {
+    .countdown { gap: 14px; }
+    .countdown .unit { min-width: 36px; }
+    .countdown .n { font-size: 19px; }
+  }
+
+  /* ---- Scroll cue, replacing the SHOP button ---- */
+  .scroll-cue {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 0;
+    padding: 14px 22px;      /* tap target, the arrow alone is too small */
+    cursor: pointer;
+    color: var(--paper);
+    opacity: 0.85;
+  }
+
+  .scroll-cue:hover { opacity: 1; }
+
+  .scroll-cue .chev {
+    width: 15px;
+    height: 15px;
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    transform: rotate(45deg);
+    animation: nudge 2.2s ease-in-out infinite;
+  }
+
+  @keyframes nudge {
+    0%, 100% { transform: rotate(45deg) translate(0, 0); }
+    50%      { transform: rotate(45deg) translate(3px, 3px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-cue .chev { animation: none; }
+  }
+
+  /* ---- Signup ----
+     Scoped to #signup. These were bare element selectors and leaked into
+     every other form on the page - the withdrawal form came out as a flex
+     row. Keep new form styling scoped. */
+  #signup {
     display: flex;
     width: min(400px, 100%);
     border-bottom: 1px solid rgba(242,240,234,0.6);
   }
 
-  input[type="email"] {
+  #signup input[type="email"] {
     flex: 1;
     background: transparent;
     border: none;
@@ -128,14 +207,14 @@
     padding: 12px 4px;
   }
 
-  input[type="email"]::placeholder {
+  #signup input[type="email"]::placeholder {
     color: rgba(242,240,234,0.55);
     text-transform: uppercase;
     font-size: 12px;
     letter-spacing: 0.14em;
   }
 
-  form button {
+  #signup button {
     background: transparent;
     border: none;
     color: var(--paper);
@@ -147,7 +226,7 @@
     font-family: inherit;
   }
 
-  form button:hover { opacity: 0.6; }
+  #signup button:hover { opacity: 0.6; }
 
   .msg {
     font-size: 12px;
@@ -156,30 +235,27 @@
     color: rgba(242,240,234,0.85);
   }
 
-  .one-of-one {
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgba(242,240,234,0.7);
-  }
-
   /* ==========================================================
      SHOP
      ========================================================== */
-  .top-fade {
-    position: fixed;
+  /* The masthead - band, Back and logo - scrolls away with the page. It is
+     positioned against #shop, not the viewport, so nothing follows the scroll.
+     Solid, deliberately NOT a gradient: a fade washes the product photos out
+     into a haze as they pass behind it. */
+  .top-bar {
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 130px;
-    background: linear-gradient(to bottom, var(--paper) 55%, rgba(242,240,234,0));
+    height: 126px;
+    background: var(--paper);
     z-index: 40;
     pointer-events: none;
   }
 
-  /* logo centered on the page — stays still while scrolling */
+  /* logo centered at the top of the page - scrolls away, does not follow */
   .mark {
-    position: fixed;
+    position: absolute;
     top: 26px;
     left: 50%;
     transform: translateX(-50%);
@@ -191,7 +267,7 @@
   }
 
   .back {
-    position: fixed;
+    position: absolute;
     top: 32px;
     left: 28px;
     z-index: 60;
@@ -239,14 +315,7 @@
     touch-action: pan-y;
   }
 
-  .track {
-    display: flex;
-    height: 100%;
-    transition: transform 0.4s ease;
-  }
-
-  .track img {
-    min-width: 100%;
+  .gallery img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -255,49 +324,12 @@
     -webkit-user-drag: none;
   }
 
-  .arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 34px;
-    height: 34px;
-    background: rgba(242,240,234,0.9);
-    border: 1px solid var(--ink);
-    color: var(--ink);
-    font-size: 13px;
-    line-height: 1;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.25s ease;
-    z-index: 3;
-  }
+  /* Garments photographed but not yet shot for e-commerce. Same outline and
+     ratio as a real tile so the grid keeps its rhythm. */
+  .gallery.empty { background: #e8e5dd; }
 
-  .gallery:hover .arrow { opacity: 1; }
-  .arrow.prev { left: 10px; }
-  .arrow.next { right: 10px; }
+  .meta .soon { color: var(--muted); }
 
-  .dots {
-    position: absolute;
-    bottom: 12px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    gap: 7px;
-    z-index: 3;
-  }
-
-  .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(242,240,234,0.55);
-    border: 1px solid rgba(13,13,13,0.5);
-    padding: 0;
-    cursor: pointer;
-  }
-
-  .dot.active { background: var(--ink); }
 
   .meta {
     padding-top: 14px;
@@ -310,60 +342,940 @@
 
   .meta .price { color: var(--muted); }
 
-  .shop-footer {
+  /* Footer link to the statutory withdrawal page. Inherits its colour so the
+     same markup reads correctly on the dark home view and the paper shop. */
+  .legal-link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 2px;
+  }
+  .legal-link:hover { opacity: 0.55; }
+
+  /* ==========================================================
+     FORTRYD KØB - statutory withdrawal page
+     Forbrugeraftaleloven § 20 a, in force 19 June 2026. The
+     function must be visible and easy to find - hence the
+     footer link on every view. It must NOT be moved behind
+     the terms document.
+     ========================================================== */
+  .legal {
+    max-width: 580px;
+    margin: 0 auto;
+    padding: 165px 28px 70px;
+  }
+
+  .legal h1 {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 0 0 20px;
+  }
+
+  .legal p {
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--muted);
+    margin: 0 0 16px;
+  }
+
+  .legal hr {
+    border: 0;
     border-top: 1px solid rgba(13,13,13,0.14);
-    padding: 34px 28px 60px;
+    margin: 34px 0;
+  }
+
+  .field { margin-bottom: 24px; }
+
+  .field label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 9px;
+  }
+
+  .field input,
+  .field textarea {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--ink);
+    padding: 12px 13px;
+    font-family: inherit;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+
+  .field textarea { resize: vertical; min-height: 86px; line-height: 1.6; }
+
+  .field input:focus,
+  .field textarea:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
+
+  .field .hint {
     font-size: 11px;
+    line-height: 1.6;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 8px 0 0;
+  }
+
+  .field .err {
+    display: none;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8c1d18;
+    margin: 8px 0 0;
+  }
+
+  .field.invalid .err { display: block; }
+  .field.invalid input,
+  .field.invalid textarea { border-color: #8c1d18; }
+
+  .legal .submit {
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 14px 28px;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .legal .submit:hover { background: transparent; color: var(--ink); }
+  .legal .submit[disabled] { opacity: 0.4; cursor: default; }
+  .legal .submit[disabled]:hover { background: var(--ink); color: var(--paper); }
+
+  /* The § 20 a acknowledgement. Shown only once the withdrawal has
+     actually been delivered - see the note in the script. */
+  .receipt {
+    display: none;
+    border: 1px solid var(--ink);
+    padding: 28px 26px;
+  }
+
+  .receipt.show { display: block; }
+
+  .receipt h2 {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 0 0 18px;
+  }
+
+  .receipt .row {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    line-height: 2.1;
+    border-bottom: 1px solid rgba(13,13,13,0.1);
+  }
+
+  .receipt .row:last-of-type { border-bottom: 0; }
+
+  .receipt .row dt {
+    flex: 0 0 128px;
+    margin: 0;
+    font-size: 10px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--muted);
+  }
+
+  .receipt .row dd { margin: 0; word-break: break-word; }
+
+  .receipt .note {
+    font-size: 12px;
+    line-height: 1.75;
+    color: var(--muted);
+    margin: 20px 0 0;
+  }
+
+  @media (max-width: 560px) {
+    .legal { padding: 140px 20px 60px; }
+    .receipt .row { flex-direction: column; gap: 0; line-height: 1.7; padding: 9px 0; }
+    .receipt .row dt { flex: none; }
+  }
+
+  /* ---- Prose inside legal / about pages ---- */
+  .legal h2 {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 42px 0 14px;
+  }
+
+  .legal h2:first-of-type { margin-top: 0; }
+
+  .legal h3 {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    margin: 26px 0 10px;
+    color: var(--ink);
+  }
+
+  .legal ul { margin: 0 0 16px; padding-left: 18px; }
+
+  .legal li {
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .legal a { color: var(--ink); text-decoration: none; border-bottom: 1px solid currentColor; }
+  .legal a:hover { opacity: 0.55; }
+
+  .legal .lede {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink);
+    margin-bottom: 24px;
+  }
+
+  /* A boxed block - used for the statutory withdrawal form, which must be
+     reproduced verbatim and should read as a document, not as body copy. */
+  .legal .box {
+    border: 1px solid var(--ink);
+    padding: 24px 22px;
+    margin: 18px 0 26px;
+  }
+
+  .legal .box p { font-size: 12px; line-height: 1.95; }
+  .legal .box p:last-child { margin-bottom: 0; }
+
+  /* Placeholder - every value the owner still has to supply is wrapped in
+     this so an unfilled site is obvious at a glance instead of shipping
+     "[CVR NUMBER]" to a customer unnoticed. */
+  .ph {
+    background: rgba(140,29,24,0.1);
+    border-bottom: 1px solid rgba(140,29,24,0.5);
+    padding: 0 3px;
+    color: #8c1d18;
+  }
+
+  /* ---- All text pages (about, shipping, terms, privacy, cancel):
+     one size, one colour, one weight throughout ---- */
+  .legal { max-width: 680px; }
+  .legal h1,
+  .legal h2,
+  .legal h3,
+  .legal p,
+  .legal .lede,
+  .legal .box p,
+  .legal li,
+  .legal strong,
+  .legal a {
+    font-size: 18px;
+    line-height: 1.7;
+    font-weight: 400;
+    color: var(--ink);
+  }
+  .legal h1,
+  .legal h2 { letter-spacing: 0.12em; text-transform: uppercase; }
+  .legal h3 { letter-spacing: 0; }
+  .legal h1 { margin: 0 0 24px; }
+  .legal h2,
+  .legal h2:first-of-type { margin: 48px 0 14px; }
+  .legal h1 + h2 { margin-top: 0; }
+  .legal h3 { margin: 28px 0 10px; }
+  .legal p,
+  .legal .lede { margin: 0 0 18px; }
+  .legal li { margin-bottom: 10px; }
+  @media (max-width: 560px) {
+    .legal h1, .legal h2, .legal h3, .legal p, .legal .lede, .legal .box p,
+    .legal li, .legal strong, .legal a { font-size: 16px; }
+  }
+
+  /* ==========================================================
+     DROP SECTION — the products, below the hero on the same scroll
+     ========================================================== */
+  .drop { padding: 92px 28px 40px; background: var(--paper); }
+
+  .section-head {
+    max-width: 1500px;
+    margin: 0 auto 38px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+  }
+
+  /* Large, sentence case, tight negative tracking, regular weight.
+     The small UI text keeps its wide uppercase tracking — the contrast
+     between the two is the whole effect. */
+  .display {
+    font-size: clamp(34px, 6.4vw, 60px);
+    font-weight: 400;
+    letter-spacing: -0.045em;
+    line-height: 1.02;
+    margin: 0;
+    text-transform: none;
+  }
+
+  .section-head .note {
+    font-size: clamp(18px, 2.6vw, 28px);
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    text-transform: none;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  @media (max-width: 620px) {
+    .section-head { display: block; }
+    .section-head .note { text-align: left; margin-top: 8px; }
+  }
+
+  /* ---- Product tile ---- */
+  .tile { cursor: pointer; display: block; text-align: left; background: none; border: 0; padding: 0; font-family: inherit; width: 100%; }
+  .tile:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+  .tile .gallery { transition: opacity 0.3s ease; }
+  .tile:hover .gallery { opacity: 0.86; }
+
+  .tile-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    margin-top: 14px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .tile-meta .name { color: var(--ink); }
+  .tile-meta .cost { color: var(--muted); white-space: nowrap; }
+  .tile-meta .soon { color: var(--muted); }
+
+  /* ==========================================================
+     PRODUCT PAGE
+     Images left, sticky details right. One garment, one size —
+     so there is no size selector, only a stated size and the
+     measurements, which is what a one-of-one needs.
+     ========================================================== */
+  .product {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 166px 28px 70px;
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 56px;
+    align-items: start;
+  }
+
+  .product-images { display: flex; flex-direction: column; gap: 14px; }
+
+  .product-images img {
+    width: 100%;
+    display: block;
+    border: 1px solid var(--ink);
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    background: #e8e5dd;
+  }
+
+  .product-panel { position: sticky; top: 108px; }
+
+  .product-panel .price {
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 14px 0 0;
+  }
+
+  .product-panel .sold {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 10px 0 0;
+  }
+
+  .buy {
+    display: block;
+    width: 100%;
+    margin: 28px 0 0;
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 17px 24px;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+
+  .buy:hover { background: transparent; color: var(--ink); }
+  .buy[disabled] { opacity: 0.4; cursor: default; }
+  .buy[disabled]:hover { background: var(--ink); color: var(--paper); }
+
+  .buy-note {
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--muted);
+    margin: 14px 0 0;
+  }
+
+  /* ---- Accordions ---- */
+  .acc { border-top: 1px solid rgba(13,13,13,0.16); margin-top: 34px; }
+  .acc details { border-bottom: 1px solid rgba(13,13,13,0.16); }
+
+  .acc summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 17px 0;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .acc summary::-webkit-details-marker { display: none; }
+  .acc summary::after { content: "+"; font-size: 14px; line-height: 1; }
+  .acc details[open] summary::after { content: "\2013"; }
+
+  .acc .body { padding: 0 0 20px; font-size: 13px; line-height: 1.8; color: var(--muted); }
+  .acc .body p { margin: 0 0 10px; }
+  .acc .body p:last-child { margin-bottom: 0; }
+
+  .measure { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .measure th, .measure td { text-align: left; padding: 7px 0; border-bottom: 1px solid rgba(13,13,13,0.1); }
+  .measure th { font-weight: 400; color: var(--muted); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; }
+
+  /* On a phone the stacked images pushed BUY NOW four screens down. The
+     tile they tapped already showed them the garment, so the panel comes
+     first and the images follow. */
+  @media (max-width: 900px) {
+    .product {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      padding-top: 150px;
+    }
+    .product-panel { position: static; order: -1; }
+  }
+
+  /* ==========================================================
+     SIGNUP BAND — was fixed to the bottom of the hero, now a
+     normal section at the end of the scroll.
+     ========================================================== */
+  .signup-band {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 86px 28px;
+    text-align: center;
+  }
+
+  .signup-band .display { margin-bottom: 16px; }
+
+  .signup-band p {
+    font-size: 13px;
+    line-height: 1.75;
+    color: rgba(242,240,234,0.7);
+    max-width: 440px;
+    margin: 0 auto 30px;
+  }
+
+  .signup-band form { margin: 0 auto; }
+
+  /* ---- Shared site footer ----
+     Numbered index rows: big sentence-case label left, two-line
+     uppercase descriptor right, hairline between each. */
+  .site-footer {
+    border-top: 1px solid rgba(13,13,13,0.14);
+    padding: 70px 28px 44px;
+    color: var(--ink);
+  }
+
+  .footer-index {
+    max-width: 1500px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .frow {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 9px 0;
+    border-top: 1px solid var(--ink);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .frow:hover { opacity: 0.55; }
+
+  .frow .label {
+    font-size: clamp(23px, 3.6vw, 34px);
+    font-weight: 400;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+    text-transform: none;
+  }
+
+  .frow small {
+    font-size: 9px;
+    line-height: 1.45;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: right;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .footer-base {
+    max-width: 1500px;
+    margin: 22px auto 0;
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 8px 20px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
+
+  .site-footer .identity {
+    max-width: 1500px;
+    margin: 14px auto 0;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    line-height: 1.9;
+    color: var(--muted);
+  }
+
 </style>
 </head>
 <body data-view="home">
 
-<!-- ==================== HOME ==================== -->
+<!-- ==================== HOME ====================
+     One continuous scroll: hero, then the drop, then signup.
+     The products are no longer behind a button. -->
 <section class="view" id="home">
-  <video class="media" autoplay muted loop playsinline poster="assets/frontpage-2400.jpg">
-    <source src="assets/loop.mp4" type="video/mp4">
-    <img class="media" src="assets/frontpage-2400.jpg"
-         alt="Family gathered at a long table under a tree, Italy, 1960s.">
-  </video>
 
-  <div class="veil"></div>
+  <div class="hero-wrap">
+    <video class="media" autoplay muted loop playsinline poster="assets/frontpage-2400.jpg">
+      <source src="assets/loop.mp4" type="video/mp4">
+      <img class="media" src="assets/frontpage-2400.jpg"
+           alt="Family gathered at a long table under a tree, Italy, 1960s.">
+    </video>
 
-  <img class="logo" src="assets/logo-white.png" alt="GIACO MINO">
+    <div class="veil"></div>
 
-  <button class="shop-btn" id="open-shop">Shop</button>
+    <div class="hero">
+      <img class="logo" src="assets/logo-white.png" alt="GIACO MINO">
+      <div class="countdown" id="countdown" role="timer" aria-live="off"></div>
+    </div>
 
-  <div class="home-bottom">
+    <div class="hero-foot">
+      <button class="scroll-cue" id="scroll-products" aria-label="Scroll to the garments">
+        <span class="chev" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+
+  <section class="drop" id="drop">
+    <div class="section-head">
+      <h2 class="display">Drop one.</h2>
+      <span class="note">Each piece exists once</span>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <div class="signup-band">
+    <h2 class="display">Nothing is remade twice.</h2>
+    <p>One email when a piece is finished. Nothing else.</p>
     <form id="signup" novalidate>
       <input type="email" id="email" placeholder="Email" autocomplete="email" required>
       <button type="submit">Notify me</button>
     </form>
     <p class="msg" id="msg"></p>
-    <p class="one-of-one">1 of 1.</p>
   </div>
+
+  <footer class="site-footer"></footer>
 </section>
 
-<!-- ==================== SHOP ==================== -->
-<section class="view" id="shop">
-  <div class="top-fade"></div>
-  <button class="back" id="close-shop">Back</button>
-  <img class="mark" id="mark" src="assets/logo-black.png" alt="GIACO MINO">
+<!-- ==================== PRODUCT ====================
+     Rendered from the slug in the hash: #product/<slug>. -->
+<section class="view" id="product">
+  <div class="top-bar"></div>
+  <button class="back" data-home>Back</button>
+  <img class="mark" data-home src="assets/logo-black.png" alt="GIACO MINO">
+  <div class="product" id="product-body"></div>
+  <footer class="site-footer"></footer>
+</section>
 
-  <div class="shop-inner">
-    <div class="grid" id="grid"></div>
+<!-- ==================== CANCEL AN ORDER ====================
+     Statutory withdrawal function. Forbrugeraftaleloven § 20 a,
+     in force 19 June 2026: it must be visible, easy to find and
+     clearly labelled, and the customer must receive an immediate
+     digital acknowledgement. Do not move this behind the terms
+     page and do not remove the footer links that reach it. -->
+<section class="view" id="withdraw">
+  <div class="top-bar"></div>
+  <button class="back" id="close-withdraw" data-home>Back</button>
+  <img class="mark" id="mark-withdraw" data-home src="assets/logo-black.png" alt="GIACO MINO">
+
+  <div class="legal">
+    <h1>Cancel your order</h1>
+
+    <p>You have 14 days from the day your order arrives to withdraw from the
+      purchase, for any reason. Fill this in and we confirm it here on screen
+      straight away, and by email.</p>
+    <p>Send the garment back within 14 days of telling us. It should come back
+      in the condition it reached you.</p>
+
+    <hr>
+
+    <form id="withdraw-form" novalidate>
+      <div class="field" id="f-name">
+        <label for="w-name">Your name</label>
+        <input type="text" id="w-name" name="name" autocomplete="name" required>
+        <p class="err">Enter your name.</p>
+      </div>
+
+      <div class="field" id="f-order">
+        <label for="w-order">Order number</label>
+        <input type="text" id="w-order" name="order" inputmode="text" required>
+        <p class="hint">On your order confirmation email. If you can't find it,
+          put the date you ordered instead.</p>
+        <p class="err">Enter your order number.</p>
+      </div>
+
+      <div class="field" id="f-email">
+        <label for="w-email">Email</label>
+        <input type="email" id="w-email" name="email" autocomplete="email" required>
+        <p class="hint">The address you ordered with. Your confirmation goes here.</p>
+        <p class="err">Enter a valid email.</p>
+      </div>
+
+      <div class="field" id="f-note">
+        <label for="w-note">Anything else (optional)</label>
+        <textarea id="w-note" name="note"></textarea>
+      </div>
+
+      <button type="submit" class="submit" id="w-submit">Cancel my order</button>
+      <p class="hint" id="w-fallback" style="margin-top:16px;"></p>
+    </form>
+
+    <div class="receipt" id="w-receipt" role="status" aria-live="polite">
+      <h2>Withdrawal received</h2>
+      <dl>
+        <div class="row"><dt>Reference</dt><dd id="r-ref"></dd></div>
+        <div class="row"><dt>Received</dt><dd id="r-time"></dd></div>
+        <div class="row"><dt>Name</dt><dd id="r-name"></dd></div>
+        <div class="row"><dt>Order</dt><dd id="r-order"></dd></div>
+        <div class="row"><dt>Email</dt><dd id="r-email"></dd></div>
+      </dl>
+      <p class="note">This is your confirmation that we have received your
+        withdrawal. A copy has been sent to the address above. Keep the
+        reference, and quote it when you send the garment back.</p>
+    </div>
   </div>
 
-  <footer class="shop-footer">
-    <span>Giaco Mino — Copenhagen</span>
-    <span>1 of 1.</span>
-  </footer>
+  <footer class="site-footer"></footer>
+</section>
+
+<section class="view" id="about">
+  <div class="top-bar"></div>
+  <button class="back" data-home>Back</button>
+  <img class="mark" data-home src="assets/logo-black.png" alt="GIACO MINO">
+
+  <div class="legal">
+    <h1>About</h1>
+
+    <p class="lede">Giaco Mino is a slow fashion studio in Copenhagen. Every
+      piece begins as something that already exists: a worn shirt, a vintage hide, a length of deadstock cloth.
+      Each one is remade by hand, one at a time.
+      Nothing is made twice. When a piece is gone, it is gone.</p>
+
+    <h2>The rhythm of 31</h2>
+    <p>My grandfather, Giacomo, was born in Naples in 1931. Thirty-one years
+      later, my mother was born. Thirty-one years after that, my sister. Three
+      generations, each arriving on the same interval, each carrying something
+      of the last into what came next.</p>
+    <p>The studio works to that rhythm. A garment arrives with a history. It is
+      taken apart, kept where it matters, and made into something new. The past
+      is not erased. It is carried forward.</p>
+
+    <h2>The name</h2>
+    <p>Giaco Mino is my grandfather's two names put together: Giaco, from
+      Giacomo, and Mino, his nickname. On the back of every shirt in the first
+      drop sit nine white buttons, for Giacomino.</p>
+
+    <h2>How it is made</h2>
+    <p>Only what already exists: vintage garments, old leather, deadstock
+      fabric. Never new textiles. Every cut, seam and stitch is done by hand,
+      here in the studio, by me. Materials are sourced as near to Denmark as
+      possible, and always within the EU.</p>
+
+    <h2>For those who care</h2>
+    <p>These clothes are not made for everyone. They are for people who value
+      craft over trend, who see beauty in imperfection, and who want to know
+      where something came from, and who wore it before them.</p>
+    <p>— Mino</p>
+
+    <h2>Contact</h2>
+    <p>For anything at all, whether fit, condition, measurements or a question
+      about a specific piece, write to <a data-biz-link="email" href="#"><span data-biz="email"></span></a>.</p>
+
+    <p><a href="#shop">See the pieces</a></p>
+
+  </div>
+
+  <footer class="site-footer"></footer>
+</section>
+
+<section class="view" id="shipping">
+  <div class="top-bar"></div>
+  <button class="back" data-home>Back</button>
+  <img class="mark" data-home src="assets/logo-black.png" alt="GIACO MINO">
+
+  <div class="legal">
+    <h1>Shipping &amp; Returns</h1>
+
+    <p class="lede">What it costs, when it arrives, and how to send it back.</p>
+
+    <h2>Dispatch</h2>
+    <p>Orders are packed and sent within <span data-ph>[DISPATCH TIME, e.g. 2–3 working days]</span>
+      of your order. Every piece is made and photographed before it is listed, so
+      nothing is made to order and nothing is backordered.</p>
+    <p>You will get a confirmation email when you order, and a second message with
+      tracking when the parcel leaves the studio.</p>
+
+    <h2>Shipping costs and delivery times</h2>
+    <ul>
+      <li>Denmark: <span data-ph>[0 DKK]</span>, <span data-ph>[1–2 working days]</span></li>
+      <li>Rest of the EU: <span data-ph>[0 DKK]</span>, <span data-ph>[3–6 working days]</span></li>
+      <li>Rest of the world: <span data-ph>[0 DKK]</span>, <span data-ph>[7–14 working days]</span></li>
+    </ul>
+    <p>The full cost, including shipping, is shown before you confirm your order.
+      Orders outside the EU may attract import duty or local tax on arrival. That
+      is charged by your own country and is not included in what you pay here.</p>
+
+    <h2>Your right to cancel</h2>
+    <p>You have <strong>14 days</strong> from the day you receive your order to
+      cancel it, for any reason, without giving one.</p>
+    <p>To cancel, use the <a href="#cancel">cancel an order</a> page, or write to
+      <a data-biz-link="orders" href="#"><span data-biz="orders"></span></a>. Any
+      clear statement that you want to cancel is enough. You do not have to use a
+      form. We confirm receipt as soon as it reaches us.</p>
+    <p>Once you have told us, send the garment back within 14 days.</p>
+
+    <h2>Sending it back</h2>
+    <ul>
+      <li>Return postage is paid by <span data-ph>[YOU / THE CUSTOMER: DECIDE AND STATE IT]</span>.</li>
+      <li>Send it to <span data-biz="address"></span>.</li>
+      <li>Pack it as it reached you. You may try a garment on as you would in a
+        shop; if it comes back worn beyond that, we may reduce the refund to
+        reflect the loss in value.</li>
+      <li>Keep your proof of postage until the refund lands.</li>
+    </ul>
+
+    <h2>Refunds</h2>
+    <p>We refund everything you paid, including the standard delivery cost, within
+      14 days of getting the garment back, or of you proving you have sent it,
+      whichever comes first. The refund goes back to the method you paid with.</p>
+    <p>If you chose a faster delivery than our standard option, we refund the
+      standard cost, not the upgrade.</p>
+
+    <h2>If something is wrong with it</h2>
+    <p>Separately from the 14-day cancellation right, you have <strong>two years</strong>
+      under the Danish Sale of Goods Act to complain about a fault that was present
+      when the garment reached you.</p>
+    <p>These garments are remade from second-hand clothing. Wear, fading, repairs
+      and marks that are described or visible in the photographs are part of the
+      piece and are not faults. For anything else, write to us and we will put it right.</p>
+
+  </div>
+
+  <footer class="site-footer"></footer>
+</section>
+
+<section class="view" id="terms">
+  <div class="top-bar"></div>
+  <button class="back" data-home>Back</button>
+  <img class="mark" data-home src="assets/logo-black.png" alt="GIACO MINO">
+
+  <div class="legal">
+    <h1>Terms</h1>
+
+    <p class="lede">The terms you buy under. Written to be read, not to be
+      skipped.</p>
+
+    <h2>Who you are buying from</h2>
+    <p>
+      <span data-biz="legal"></span><br>
+      <span data-biz="address"></span><br>
+      CVR <span data-biz="cvr"></span><br>
+      <span data-vat-line hidden>VAT <span data-biz="vat"></span><br></span>
+      <a data-biz-link="email" href="#"><span data-biz="email"></span></a>
+    </p>
+
+    <h2>Prices</h2>
+    <p>All prices are in Danish kroner (DKK) and are the full price you pay for the
+      garment. Shipping is added at checkout and shown before you confirm.</p>
+    <p data-novat>Giaco Mino is not currently registered for VAT, so no VAT is
+      charged or shown on your order.</p>
+
+    <h2>Your order</h2>
+    <p>Your order is an offer to buy. The contract is formed when we send you the
+      order confirmation by email. Because every garment exists once, an item can
+      sell while you are still looking at it; if that happens we will tell you and
+      refund you in full.</p>
+
+    <h2>Payment</h2>
+    <p>We accept <span data-ph>[PAYMENT METHODS]</span>. Payment is handled by
+      <span data-ph>[PAYMENT PROVIDER]</span>. We never see or store your card details.</p>
+
+    <h2>Delivery</h2>
+    <p>Costs and times are on the <a href="#shipping">shipping and returns</a> page.</p>
+
+    <h2>Right of withdrawal</h2>
+    <p>You have 14 days from the day you receive the garment to withdraw from the
+      purchase, without giving a reason. To do it, use the
+      <a href="#cancel">cancel an order</a> page or send a clear statement to
+      <a data-biz-link="orders" href="#"><span data-biz="orders"></span></a>. You may
+      use the form below, but you do not have to.</p>
+    <p>Send the garment back within 14 days of telling us. We refund within 14 days
+      of receiving it back, or of your proof of return. Full detail is on the
+      <a href="#shipping">shipping and returns</a> page.</p>
+
+    <h3>Standard withdrawal form</h3>
+    <p>Complete and return this form only if you wish to withdraw from the contract.</p>
+    <div class="box">
+      <p>To <span data-biz="legal"></span>, <span data-biz="address"></span>,
+        <span data-biz="orders"></span>:</p>
+      <p>I hereby give notice that I withdraw from my contract of sale of the
+        following goods:</p>
+      <p>_______________________________________________</p>
+      <p>Ordered on: ____________  Received on: ____________</p>
+      <p>Name: _______________________________________</p>
+      <p>Address: ____________________________________</p>
+      <p>Signature (only if this form is sent on paper): ____________________</p>
+      <p>Date: ____________</p>
+    </div>
+
+    <h2>If the garment is faulty</h2>
+    <p>You have two years to complain under the Danish Sale of Goods Act
+      (købeloven). Described wear on a remade second-hand garment is not a fault.
+      See <a href="#shipping">shipping and returns</a>.</p>
+
+    <h2>Complaints</h2>
+    <p>Write to us first at <a data-biz-link="email" href="#"><span data-biz="email"></span></a>
+      and we will try to settle it directly.</p>
+    <p>If we cannot agree, you can take the complaint to the Danish Competition and
+      Consumer Authority's Centre for Complaint Resolution, Nævnenes Hus,
+      Toldboden 2, 8800 Viborg, Denmark:
+      <a href="https://naevneneshus.dk" target="_blank" rel="noopener">naevneneshus.dk</a>.</p>
+
+    <h2>Governing law</h2>
+    <p>Danish law applies. Nothing in these terms limits the rights you have as a
+      consumer under Danish or EU law.</p>
+
+    <p style="margin-top:34px;font-size:11px;letter-spacing:0.1em;">
+      Last updated <span data-ph>[DATE]</span>.</p>
+
+  </div>
+
+  <footer class="site-footer"></footer>
+</section>
+
+<section class="view" id="privacy">
+  <div class="top-bar"></div>
+  <button class="back" data-home>Back</button>
+  <img class="mark" data-home src="assets/logo-black.png" alt="GIACO MINO">
+
+  <div class="legal">
+    <h1>Privacy</h1>
+
+    <p class="lede">What we collect, why, and what you can do about it.</p>
+
+    <h2>Who is responsible</h2>
+    <p>
+      <span data-biz="legal"></span><br>
+      <span data-biz="address"></span><br>
+      CVR <span data-biz="cvr"></span><br>
+      <a data-biz-link="email" href="#"><span data-biz="email"></span></a>
+    </p>
+    <p>Write to that address for anything on this page.</p>
+
+    <h2>What we collect</h2>
+    <ul>
+      <li><strong>If you sign up for emails</strong>: your email address, and
+        whether you opened or clicked what we sent.</li>
+      <li><strong>If you order</strong>: your name, delivery address, email,
+        and what you bought. Your card details go straight to our payment
+        provider; we never see them.</li>
+    </ul>
+
+    <h2>Why, and on what basis</h2>
+    <ul>
+      <li><strong>Emails</strong>: because you consented. You can withdraw that
+        at any time, from the link at the bottom of every email.</li>
+      <li><strong>Orders</strong>: because we need it to perform the contract
+        and get the parcel to you.</li>
+      <li><strong>Accounts</strong>: because Danish bookkeeping law requires us
+        to keep records of what we sold.</li>
+    </ul>
+
+    <h2>Who else sees it</h2>
+    <ul>
+      <li><span data-ph>[EMAIL PLATFORM, e.g. Klaviyo, United States]</span>, which
+        sends our emails.</li>
+      <li><span data-ph>[SHOP PLATFORM, e.g. Shopify]</span>, which runs the shop
+        and the checkout.</li>
+      <li><span data-ph>[PAYMENT PROVIDER]</span>, which handles payment.</li>
+      <li>The carrier that delivers your parcel.</li>
+    </ul>
+    <p>Each of them processes your data on our instructions under a written
+      agreement. Some are outside the EU; where that is so, the transfer is covered
+      by the European Commission's standard contractual clauses.</p>
+
+    <h2>How long we keep it</h2>
+    <ul>
+      <li><strong>Email signups</strong>: until you unsubscribe.</li>
+      <li><strong>Order records</strong>: five years from the end of the financial
+        year, as Danish bookkeeping law requires.</li>
+    </ul>
+
+    <h2>Your rights</h2>
+    <p>You can ask us for a copy of your data, to correct it, to delete it, to
+      restrict or object to what we do with it, or to have it sent to someone else.
+      You can withdraw consent at any time without affecting what we did before.</p>
+    <p>Write to <a data-biz-link="email" href="#"><span data-biz="email"></span></a>
+      and we will answer within a month.</p>
+    <p>If you think we have handled your data badly you can complain to Datatilsynet,
+      Carl Jacobsens Vej 35, 2500 Valby, Denmark:
+      <a href="https://datatilsynet.dk" target="_blank" rel="noopener">datatilsynet.dk</a>.</p>
+
+    <h2>Cookies</h2>
+    <p data-cookie-none>This site sets no cookies and does not track you. The email
+      signup form sends your address to our email platform and nothing else.</p>
+
+    <p style="margin-top:34px;font-size:11px;letter-spacing:0.1em;">
+      Last updated <span data-ph>[DATE]</span>.</p>
+
+  </div>
+
+  <footer class="site-footer"></footer>
 </section>
 
 <script>
@@ -373,8 +1285,15 @@
      assets/products/<slug>/ and show in listed order.
      To add a piece: add a folder, then add an entry here.
      ========================================================== */
-  const PRICE = "550,00 DKK";
+  const PRICE = "1.200,00 DKK";
 
+  /* One entry per garment. Images live in assets/products/<slug>/ and
+     show in listed order.
+
+     Every garment is a single piece in a single size, so there is no size
+     selector — `size` and `measurements` are stated instead. Anything left
+     in [SQUARE BRACKETS] renders highlighted red on the product page, the
+     same convention as BUSINESS below. */
   const PRODUCTS = [
     { slug: "abstract-shirt",    title: "Abstract Shirt",    images: ["01.jpg","02.jpg","03.jpg","04.jpg"] },
     { slug: "green-shirt",       title: "Green Shirt",       images: ["01.jpg","02.jpg","03.jpg","04.jpg"] },
@@ -383,81 +1302,249 @@
     { slug: "shincino-crewneck", title: "Shincino Crewneck", images: ["01.jpg","02.jpg"] }
   ];
 
+  /* Defaults applied to any product that doesn't override them, so adding
+     a garment needs only slug/title/images to appear correctly. */
+  const PRODUCT_DEFAULTS = {
+    size: "[SIZE]",
+    material: "[MATERIAL]",
+    condition: "[CONDITION — describe the wear honestly]",
+    details: "[DESCRIPTION — material, construction, what was remade. Ends: 1 of 1.]",
+    measurements: { Chest: "[00 cm]", Length: "[00 cm]", Shoulder: "[00 cm]", Sleeve: "[00 cm]" }
+  };
+
+  PRODUCTS.forEach((p, i) => {
+    Object.keys(PRODUCT_DEFAULTS).forEach((k) => {
+      if (p[k] === undefined) p[k] = PRODUCT_DEFAULTS[k];
+    });
+    p.index = i + 1;
+    p.price = p.price || PRICE;
+  });
+
+  const bySlug = (slug) => PRODUCTS.find((p) => p.slug === slug);
+
+  /* Wrap anything still in brackets so it renders flagged. */
+  const mark = (v) => (typeof v === "string" && v.includes("["))
+    ? `<span class="ph">${v}</span>` : v;
+
   /* ---- Build the grid ---- */
   const grid = document.getElementById("grid");
 
-  PRODUCTS.forEach((p, idx) => {
-    const n = String(idx + 1).padStart(2, "0");
+  PRODUCTS.forEach((p) => {
+    const n = String(p.index).padStart(2, "0");
     const el = document.createElement("article");
     el.innerHTML = `
-      <div class="gallery">
-        <div class="track">
-          ${p.images.map((img, i) => `
-            <img src="assets/products/${p.slug}/${img}"
-                 loading="lazy"
-                 draggable="false"
-                 alt="${p.title} — view ${i + 1}">`).join("")}
+      <button class="tile" data-slug="${p.slug}"
+              aria-label="${p.title} — view this piece">
+        <div class="gallery">
+          <img src="assets/products/${p.slug}/${p.images[0]}"
+               loading="lazy" draggable="false" alt="${p.title}">
         </div>
-        ${p.images.length > 1 ? `
-          <button class="arrow prev" aria-label="Previous image">&#8249;</button>
-          <button class="arrow next" aria-label="Next image">&#8250;</button>
-          <div class="dots">
-            ${p.images.map((_, i) => `
-              <button class="dot ${i === 0 ? "active" : ""}" data-to="${i}"
-                      aria-label="Image ${i + 1}"></button>`).join("")}
-          </div>` : ""}
-      </div>
-      <div class="meta">
-        <div class="title">${n}. ${p.title}</div>
-        <div class="price">${PRICE}</div>
-      </div>`;
+        <div class="tile-meta">
+          <span class="name">${n}. ${p.title}</span>
+          <span class="cost">${p.price}</span>
+        </div>
+      </button>`;
     grid.appendChild(el);
-    setupGallery(el.querySelector(".gallery"), p.images.length);
   });
 
-  /* ---- Swipeable gallery ---- */
-  function setupGallery(gallery, count) {
-    if (count < 2) return;
+  /* ---- Garments awaiting e-commerce photography ----
+     As each piece is photographed, move it into PRODUCTS above and drop
+     this number by one. Set to 0 to remove them. */
+  const AWAITING_PHOTOS = 20;
 
-    const track = gallery.querySelector(".track");
-    const dots  = [...gallery.querySelectorAll(".dot")];
-    let index = 0;
+  for (let i = 0; i < AWAITING_PHOTOS; i++) {
+    const n = String(PRODUCTS.length + i + 1).padStart(2, "0");
+    const el = document.createElement("article");
+    el.innerHTML = `
+      <div class="gallery empty"></div>
+      <div class="tile-meta">
+        <span class="name">${n}.</span>
+        <span class="soon">Coming soon</span>
+      </div>`;
+    grid.appendChild(el);
+  }
 
-    function go(i) {
-      index = Math.max(0, Math.min(count - 1, i));
-      track.style.transform = `translateX(-${index * 100}%)`;
-      dots.forEach((d, di) => d.classList.toggle("active", di === index));
+  /* Tile → product page */
+  grid.addEventListener("click", (e) => {
+    const tile = e.target.closest(".tile");
+    if (tile) location.hash = "#product/" + tile.dataset.slug;
+  });
+
+  /* ==========================================================
+     DROP COUNTDOWN
+
+     A FIXED INSTANT, not browser-local midnight, so a viewer in
+     New York and one in Copenhagen count down to the same moment
+     rather than to their own midnights.
+
+     31 October 2026, 00:00 Copenhagen. That is UTC+1: EU daylight
+     saving ends on 25 October, so the 31st is CET, not CEST. If
+     you move the drop, change this one line - and keep the offset
+     correct for the time of year.
+     ========================================================== */
+  const DROP_DATE = new Date("2026-10-31T00:00:00+01:00");
+
+  /* Shown once the date passes. Deliberately empty: the countdown
+     simply disappears rather than the site announcing a drop that
+     may not have shipped. Put a line here to say something. */
+  const DROP_PASSED_TEXT = "";
+
+  const countdown = document.getElementById("countdown");
+
+  function renderCountdown() {
+    if (!countdown) return;
+
+    let left = DROP_DATE.getTime() - Date.now();
+
+    if (left <= 0) {
+      countdown.innerHTML = DROP_PASSED_TEXT
+        ? `<div class="unit"><div class="n">${DROP_PASSED_TEXT}</div></div>`
+        : "";
+      return false;
     }
 
-    gallery.querySelector(".prev").addEventListener("click", () => go(index - 1));
-    gallery.querySelector(".next").addEventListener("click", () => go(index + 1));
-    dots.forEach(d => d.addEventListener("click", () => go(+d.dataset.to)));
+    const sec  = Math.floor(left / 1000);
+    const days = Math.floor(sec / 86400);
+    const hrs  = Math.floor((sec % 86400) / 3600);
+    const mins = Math.floor((sec % 3600) / 60);
+    const secs = sec % 60;
 
-    let startX = null, startY = null;
-    gallery.addEventListener("touchstart", e => {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-    }, { passive: true });
+    const pad = (v) => String(v).padStart(2, "0");
 
-    gallery.addEventListener("touchend", e => {
-      if (startX === null) return;
-      const dx = e.changedTouches[0].clientX - startX;
-      const dy = e.changedTouches[0].clientY - startY;
-      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
-        go(dx < 0 ? index + 1 : index - 1);
-      }
-      startX = startY = null;
-    });
+    countdown.innerHTML = [
+      [pad(days), days === 1 ? "Day"    : "Days"],
+      [pad(hrs),  hrs  === 1 ? "Hour"   : "Hours"],
+      [pad(mins), mins === 1 ? "Minute" : "Minutes"],
+      [pad(secs), secs === 1 ? "Second" : "Seconds"]
+    ].map(([n, l]) => `<div class="unit"><div class="n">${n}</div><div class="l">${l}</div></div>`)
+     .join("");
 
-    let downX = null;
-    gallery.addEventListener("mousedown", e => { downX = e.clientX; });
-    gallery.addEventListener("mouseup", e => {
-      if (downX === null) return;
-      const dx = e.clientX - downX;
-      if (Math.abs(dx) > 50) go(dx < 0 ? index + 1 : index - 1);
-      downX = null;
-    });
+    return true;
   }
+
+  if (renderCountdown()) {
+    const tick = setInterval(() => {
+      if (!renderCountdown()) clearInterval(tick);
+    }, 1000);
+  }
+
+  /* ==========================================================
+     BUSINESS DETAILS
+     The single place to edit the company information that the
+     law requires on the site. Every page reads from here -
+     footer identity line, Terms, Privacy and the statutory
+     withdrawal form. Fill these in and the whole site updates.
+
+     Anything still wrapped in [SQUARE BRACKETS] is unfilled and
+     renders highlighted in red on the page, so an incomplete
+     site is obvious rather than quietly shipping a placeholder
+     to a customer.
+
+     VAT: leave `vat` EMPTY until actually VAT registered. While
+     unregistered it is unlawful to display a VAT number or show
+     VAT on a price, so an empty value hides the VAT line and
+     keeps the "not registered for VAT" note on Terms. Filling it
+     flips both automatically.
+     ========================================================== */
+  const BUSINESS = {
+    legal:    "[REGISTERED BUSINESS NAME]",
+    street:   "[STREET ADDRESS]",
+    postcode: "[0000]",
+    city:     "Copenhagen",
+    country:  "Denmark",
+    cvr:      "[CVR NUMBER]",
+    vat:      "",
+    email:    "studio@giacomino.store",
+    orders:   "orders@giacomino.store"
+  };
+
+  const isPlaceholder = (v) => typeof v === "string" && v.startsWith("[");
+
+  BUSINESS.address = BUSINESS.street + ", " + BUSINESS.postcode + " "
+                   + BUSINESS.city + ", " + BUSINESS.country;
+
+  /* Fill every <span data-biz="key">, flagging unfilled values. */
+  document.querySelectorAll("[data-biz]").forEach((el) => {
+    const key = el.dataset.biz;
+    const val = BUSINESS[key] || "";
+    el.textContent = val;
+    if (isPlaceholder(val) || /\[/.test(val)) el.classList.add("ph");
+  });
+
+  document.querySelectorAll("[data-biz-link]").forEach((el) => {
+    const val = BUSINESS[el.dataset.bizLink] || "";
+    if (!isPlaceholder(val)) el.setAttribute("href", "mailto:" + val);
+    else el.removeAttribute("href");
+  });
+
+  /* Inline [PLACEHOLDERS] written straight into the markup. */
+  document.querySelectorAll("[data-ph]").forEach((el) => el.classList.add("ph"));
+
+  /* VAT line and the "not registered" note are two sides of one switch. */
+  const vatRegistered = BUSINESS.vat && !isPlaceholder(BUSINESS.vat);
+  document.querySelectorAll("[data-vat-line]").forEach((el) => { el.hidden = !vatRegistered; });
+  document.querySelectorAll("[data-novat]").forEach((el) => { el.hidden = !!vatRegistered; });
+
+  /* ==========================================================
+     SITE FOOTER
+     Built once and injected into every view. The identity line
+     carries the trader information e-handelsloven § 7 requires
+     to be "easily, directly and permanently accessible" - which
+     is why it is on every page rather than only on Terms.
+     ========================================================== */
+  /* label, descriptor line 1, descriptor line 2, href */
+  const FOOTER_LINKS = [
+    ["About",           "The story",   "so far",              "#about"],
+    ["Shipping",        "Dispatch",    "and delivery",        "#shipping"],
+    ["Returns",         "Returns",     "and your 14 days",    "#shipping"],
+    ["Terms",           "The terms",   "you buy under",       "#terms"],
+    ["Privacy",         "Your data",   "and choices",         "#privacy"],
+    ["Cancel an order", "Change your", "mind within 14 days", "#cancel"]
+  ];
+
+  function bizSpan(key) {
+    const val = BUSINESS[key] || "";
+    const cls = isPlaceholder(val) ? ' class="ph"' : "";
+    return `<span${cls}>${val}</span>`;
+  }
+
+  const identityHTML =
+      bizSpan("legal") + " &middot; CVR " + bizSpan("cvr")
+    + (vatRegistered ? " &middot; VAT " + bizSpan("vat") : "")
+    + "<br>" + bizSpan("address")
+    + " &middot; " + bizSpan("email");
+
+  function footerHTML() {
+    const rows = FOOTER_LINKS.map(([label, d1, d2, href], i) => `
+      <a class="frow" href="${href}">
+        <span class="label">(${i + 1}) ${label}</span>
+        <small>${d1}<br>${d2}</small>
+      </a>`).join("");
+
+    /* Contact is last and only becomes a mailto once the address exists. */
+    const mail = isPlaceholder(BUSINESS.email) ? "" : ` href="mailto:${BUSINESS.email}"`;
+    const contact = `
+      <a class="frow"${mail}>
+        <span class="label">(${FOOTER_LINKS.length + 1}) Contact</span>
+        <small>Get in<br>touch</small>
+      </a>`;
+
+    return `<div class="footer-index">${rows}${contact}</div>`
+         + `<div class="footer-base">`
+         +   `<span>Giaco Mino &copy; ${new Date().getFullYear()}</span>`
+         +   `<span>When it&rsquo;s gone, it&rsquo;s gone.</span>`
+         + `</div>`
+         + `<p class="identity">${identityHTML}</p>`;
+  }
+
+  document.querySelectorAll(".site-footer").forEach((f) => {
+    f.innerHTML = footerHTML();
+  });
+
+  /* Home keeps the hero clean: links only, no identity block. The
+     information stays one click away on every legal page. */
+  /* The landing page carries no page links on purpose (owner, 5 Nov 2026).
+     Every other view has them in .site-footer, including Cancel an order. */
 
   /* ==========================================================
      VIEW SWITCHING
@@ -466,25 +1553,123 @@
      ========================================================== */
   const video = document.querySelector("video");
 
-  function render() {
-    const shop = location.hash === "#shop";
-    document.body.dataset.view = shop ? "shop" : "home";
-    window.scrollTo(0, 0);
-    if (video) shop ? video.pause() : video.play().catch(() => {});
+  const ROUTES = {
+    "#cancel":   "withdraw",
+    "#about":    "about",
+    "#shipping": "shipping",
+    "#terms":    "terms",
+    "#privacy":  "privacy"
+  };
+
+  /* ==========================================================
+     PRODUCT PAGE
+     One garment, one size. No size selector — a one-of-one has
+     nothing to select between — so the panel states the size and
+     gives the measurements, which is what actually prevents a
+     wrong-fit return.
+
+     BUY NOW is wired to Shopify by setting BUY_URL on a product
+     (its Buy Button / checkout link). Until then the button is
+     disabled and says so rather than pretending to sell.
+     ========================================================== */
+  const productBody = document.getElementById("product-body");
+
+  function renderProduct(slug) {
+    const p = bySlug(slug);
+    if (!p || !productBody) return false;
+
+    const rows = Object.entries(p.measurements)
+      .map(([k, v]) => `<tr><th>${k}</th><td>${mark(v)}</td></tr>`).join("");
+
+    productBody.innerHTML = `
+      <div class="product-images">
+        ${p.images.map((img, i) => `
+          <img src="assets/products/${p.slug}/${img}" loading="lazy"
+               alt="${p.title} — view ${i + 1}">`).join("")}
+      </div>
+
+      <div class="product-panel">
+        <h1 class="display">${p.title}.</h1>
+        <p class="price">${p.price}</p>
+        <p class="sold">Size ${mark(p.size)} &middot; one piece only</p>
+
+        ${p.buyUrl
+          ? `<a class="buy" href="${p.buyUrl}">Buy now</a>`
+          : `<button class="buy" disabled>Buy now</button>
+             <p class="buy-note">Checkout opens with the drop. Join the list
+               on the home page and you will know first.</p>`}
+
+        <div class="acc">
+          <details open>
+            <summary>Details</summary>
+            <div class="body"><p>${mark(p.details)}</p></div>
+          </details>
+          <details>
+            <summary>Measurements</summary>
+            <div class="body">
+              <table class="measure"><tbody>${rows}</tbody></table>
+              <p style="margin-top:12px;">Measured flat. Every piece is remade
+                by hand, so treat these as the garment, not a size chart.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Material &amp; condition</summary>
+            <div class="body">
+              <p>${mark(p.material)}</p>
+              <p>${mark(p.condition)}</p>
+            </div>
+          </details>
+          <details>
+            <summary>Shipping &amp; returns</summary>
+            <div class="body">
+              <p>14 days to change your mind from the day it arrives.
+                Return postage is paid by the customer; if a garment is
+                faulty or not as described, we pay.</p>
+              <p><a href="#shipping">Full shipping and returns</a></p>
+            </div>
+          </details>
+        </div>
+      </div>`;
+    return true;
   }
 
-  document.getElementById("open-shop").addEventListener("click", () => {
-    location.hash = "#shop";
+  function render() {
+    const hash = location.hash;
+    let view;
+
+    if (hash.startsWith("#product/")) {
+      view = renderProduct(hash.slice("#product/".length)) ? "product" : "home";
+    } else {
+      view = ROUTES[hash] || "home";
+    }
+
+    document.body.dataset.view = view;
+
+    /* #shop keeps working as a link — it now scrolls to the products
+       rather than opening a separate page. */
+    if (hash === "#shop" && view === "home") {
+      const drop = document.getElementById("drop");
+      if (drop) { drop.scrollIntoView({ behavior: "auto", block: "start" }); }
+    } else {
+      window.scrollTo(0, 0);
+    }
+
+    if (video) view === "home" ? video.play().catch(() => {}) : video.pause();
+  }
+
+  /* Scroll cue — replaces the old SHOP button. */
+  const cue = document.getElementById("scroll-products");
+  if (cue) cue.addEventListener("click", () => {
+    document.getElementById("drop").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  document.getElementById("close-shop").addEventListener("click", () => {
+  function goHome() {
     history.pushState("", document.title, location.pathname + location.search);
     render();
-  });
+  }
 
-  document.getElementById("mark").addEventListener("click", () => {
-    history.pushState("", document.title, location.pathname + location.search);
-    render();
+  document.querySelectorAll("[data-home]").forEach((el) => {
+    el.addEventListener("click", goHome);
   });
 
   window.addEventListener("hashchange", render);
@@ -544,6 +1729,153 @@
       msg.textContent = "Something went wrong. Try again.";
     }
   });
+
+  /* ==========================================================
+     FORTRYD KØB - statutory withdrawal function
+     Forbrugeraftaleloven § 20 a, in force 19 June 2026. The
+     customer must get an immediate digital acknowledgement
+     that the withdrawal was RECEIVED.
+
+     SETUP - two constants, both needed before this is live:
+
+     1. WITHDRAW_ENDPOINT - a URL that accepts a JSON POST and
+        (a) delivers the withdrawal to the orders mailbox and
+        (b) emails the customer a copy at the address they gave.
+        Formspree, Web3Forms or a small Cloudflare Worker all do
+        this. The copy to the customer is not optional: an
+        on-screen message alone is a weak reading of § 20 a.
+
+     2. ORDERS_EMAIL - the mailbox withdrawals land in. Shown to
+        the customer as the fallback until the endpoint exists.
+
+     Until BOTH are set the form deliberately refuses to show a
+     receipt and prints the email fallback instead. Never
+     acknowledge receipt of something that went nowhere - a false
+     confirmation is worse here than no form at all, because the
+     customer stops acting on a deadline that is still running.
+     ========================================================== */
+  const WITHDRAW_ENDPOINT = "";
+  const ORDERS_EMAIL      = "";
+
+  const wForm     = document.getElementById("withdraw-form");
+  const wSubmit   = document.getElementById("w-submit");
+  const wFallback = document.getElementById("w-fallback");
+  const wReceipt  = document.getElementById("w-receipt");
+
+  /* Reference the customer can quote. Date plus four random
+     characters - enough to be unique by hand at this volume. */
+  function withdrawalRef() {
+    const d = new Date();
+    const stamp = d.getFullYear().toString()
+                + String(d.getMonth() + 1).padStart(2, "0")
+                + String(d.getDate()).padStart(2, "0");
+    let tail = "";
+    for (let i = 0; i < 4; i++) {
+      tail += "ACDEFGHJKLMNPQRTUVWXY349".charAt(Math.floor(Math.random() * 24));
+    }
+    return "GM-" + stamp + "-" + tail;
+  }
+
+  function mailtoFallback(data, ref) {
+    if (!ORDERS_EMAIL) {
+      return "This form isn't connected yet. Email us to withdraw. Your "
+           + "14 days run from the day your order arrived, and an "
+           + "email is just as valid.";
+    }
+    const body = encodeURIComponent(
+      "I am withdrawing from my purchase.\n\n"
+      + "Reference: " + ref + "\n"
+      + "Name: "      + data.name + "\n"
+      + "Order: "     + data.order + "\n"
+      + "Email: "     + data.email + "\n"
+      + (data.note ? "\n" + data.note + "\n" : "")
+    );
+    return "We couldn't submit that. Send it by email instead. It is just as "
+         + "valid, and your 14 days are counted from the day your order "
+         + "arrived, not from today. "
+         + '<a class="legal-link" href="mailto:' + ORDERS_EMAIL
+         + "?subject=" + encodeURIComponent("Cancel order "  + ref)
+         + "&body=" + body + '">' + ORDERS_EMAIL + "</a>";
+  }
+
+  function setInvalid(id, bad) {
+    document.getElementById(id).classList.toggle("invalid", bad);
+  }
+
+  wForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const data = {
+      name:  document.getElementById("w-name").value.trim(),
+      order: document.getElementById("w-order").value.trim(),
+      email: document.getElementById("w-email").value.trim(),
+      note:  document.getElementById("w-note").value.trim()
+    };
+
+    const badName  = data.name.length < 2;
+    const badOrder = data.order.length < 1;
+    const badEmail = !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email);
+
+    setInvalid("f-name",  badName);
+    setInvalid("f-order", badOrder);
+    setInvalid("f-email", badEmail);
+
+    if (badName || badOrder || badEmail) {
+      const first = document.querySelector(".field.invalid input");
+      if (first) first.focus();
+      return;
+    }
+
+    const ref  = withdrawalRef();
+    const now  = new Date();
+    const when = now.toLocaleString("en-GB", {
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit"
+    });
+
+    if (!WITHDRAW_ENDPOINT || !ORDERS_EMAIL) {
+      wFallback.innerHTML = mailtoFallback(data, ref);
+      return;
+    }
+
+    wSubmit.disabled = true;
+    wSubmit.textContent = "Sending";
+    wFallback.innerHTML = "";
+
+    try {
+      const res = await fetch(WITHDRAW_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reference: ref,
+          received:  now.toISOString(),
+          name:      data.name,
+          order:     data.order,
+          email:     data.email,
+          note:      data.note
+        })
+      });
+
+      if (!res.ok) throw new Error("rejected");
+
+      document.getElementById("r-ref").textContent   = ref;
+      document.getElementById("r-time").textContent  = when;
+      document.getElementById("r-name").textContent  = data.name;
+      document.getElementById("r-order").textContent = data.order;
+      document.getElementById("r-email").textContent = data.email;
+
+      wForm.style.display = "none";
+      wReceipt.classList.add("show");
+      wReceipt.scrollIntoView({ behavior: "smooth", block: "center" });
+    } catch (err) {
+      /* Delivery failed, so there is nothing to acknowledge.
+         Hand the customer a route that does work. */
+      wSubmit.disabled = false;
+      wSubmit.textContent = "Cancel my order";
+      wFallback.innerHTML = mailtoFallback(data, ref);
+    }
+  });
+
 </script>
 </body>
 </html>
