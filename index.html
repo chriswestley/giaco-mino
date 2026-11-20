@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GIACO MINO</title>
+<meta name="description" content="Giaco Mino. Drop 31:01, 30 November 2026.">
+<!--
+  Holding page: the landing video, logo and a countdown to 30 November
+  2026, nothing else. Same type and video as index.html, kept separate so
+  it can be published on its own before the shop opens.
+-->
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --paper: #f2f0ea;
+    --ink: #0d0d0d;
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: var(--ink);
+    color: var(--paper);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  .hero-media {
+    position: relative;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 100%;   /* no zoom; pinned to the bottom edge */
+    filter: grayscale(100%);
+  }
+
+  .veil {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.30) 0%,
+      rgba(0,0,0,0.20) 45%,
+      rgba(0,0,0,0.50) 100%
+    );
+  }
+
+  .hero {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    width: min(420px, 72vw);
+  }
+
+  .logo { width: 100%; height: auto; display: block; }
+
+  .hero-cta {
+    padding: 6px 10px;
+    margin-top: -6px;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--paper);
+  }
+
+  .countdown {
+    display: flex;
+    gap: 24px;
+    color: var(--paper);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .countdown .unit { text-align: center; min-width: 42px; }
+
+  .countdown .n {
+    font-size: 30px;
+    line-height: 1;
+    letter-spacing: -0.06em;
+  }
+
+  .countdown .l {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: rgba(242,240,234,0.85);
+    margin-top: 8px;
+  }
+
+  /* Ink type, as on the main site */
+  .hero-cta,
+  .countdown .n {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.042em;
+    -webkit-text-stroke: 0.02em currentColor;
+    filter: url(#ink);
+  }
+  .countdown .n { letter-spacing: -0.06em; }
+
+  @media (max-width: 420px) {
+    .countdown { gap: 14px; }
+    .countdown .unit { min-width: 36px; }
+    .countdown .n { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <filter id="ink" color-interpolation-filters="sRGB">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="0.45"/>
+    <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 16 -5"/>
+  </filter>
+</svg>
+
+<main class="hero-media">
+  <video class="media" autoplay muted loop playsinline poster="assets/frontpage-2400.jpg">
+    <source src="assets/loop.mp4" type="video/mp4">
+    <img class="media" src="assets/frontpage-2400.jpg"
+         alt="Family gathered at a long table under a tree, Italy, 1960s.">
+  </video>
+
+  <div class="veil"></div>
+
+  <div class="hero">
+    <h1 style="width:100%"><img class="logo" src="assets/logo-white.png" alt="GIACO MINO"></h1>
+    <p class="hero-cta">Drop 31:01</p>
+    <div class="countdown" id="countdown" role="timer" aria-live="off"></div>
+  </div>
+</main>
+
+<script>
+  /* Midnight Copenhagen time. 30 November is winter time, so +01:00. */
+  const DROP_DATE = new Date("2026-11-30T00:00:00+01:00");
+
+  const countdown = document.getElementById("countdown");
+  const pad = (v) => String(v).padStart(2, "0");
+
+  function render() {
+    const left = DROP_DATE.getTime() - Date.now();
+    if (left <= 0) { countdown.innerHTML = ""; return false; }
+
+    const sec  = Math.floor(left / 1000);
+    const days = Math.floor(sec / 86400);
+    const hrs  = Math.floor((sec % 86400) / 3600);
+    const mins = Math.floor((sec % 3600) / 60);
+    const secs = sec % 60;
+
+    countdown.innerHTML = [
+      [pad(days), days === 1 ? "Day"    : "Days"],
+      [pad(hrs),  hrs  === 1 ? "Hour"   : "Hours"],
+      [pad(mins), mins === 1 ? "Minute" : "Minutes"],
+      [pad(secs), secs === 1 ? "Second" : "Seconds"]
+    ].map(([n, l]) => `<div class="unit"><div class="n">${n}</div><div class="l">${l}</div></div>`)
+     .join("");
+    return true;
+  }
+
+  if (render()) {
+    const tick = setInterval(() => { if (!render()) clearInterval(tick); }, 1000);
+  }
+</script>
+</body>
+</html>
