@@ -113,6 +113,24 @@
   }
   .countdown .n { letter-spacing: -0.06em; }
 
+  .contact {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: max(24px, env(safe-area-inset-bottom));
+    text-align: center;
+  }
+  .contact a {
+    color: var(--paper);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    -webkit-text-stroke: 0.02em currentColor;
+    filter: url(#ink);
+  }
+  .contact a:hover { opacity: 0.7; }
+
   @media (max-width: 420px) {
     .countdown { gap: 14px; }
     .countdown .unit { min-width: 36px; }
@@ -143,6 +161,8 @@
     <p class="hero-cta">Drop 31:01</p>
     <div class="countdown" id="countdown" role="timer" aria-live="off"></div>
   </div>
+
+  <p class="contact"><a href="mailto:studio@giacomino.store">studio@giacomino.store</a></p>
 </main>
 
 <script>
