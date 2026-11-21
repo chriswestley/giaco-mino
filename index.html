@@ -113,23 +113,52 @@
   }
   .countdown .n { letter-spacing: -0.06em; }
 
-  .contact {
-    position: absolute;
-    left: 0; right: 0;
-    bottom: max(24px, env(safe-area-inset-bottom));
-    text-align: center;
+  /* Drop signup (owner, 21 Nov 2026) -> Klaviyo "Email List". */
+  .signup { width: 100%; margin-top: 10px; text-align: center; }
+  .signup form {
+    display: flex;
+    border-bottom: 1.5px solid var(--paper);
   }
-  .contact a {
+  .signup input {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    padding: 10px 0;
     color: var(--paper);
-    text-decoration: none;
-    font-size: 13px;
+    font: inherit;
+    font-size: 15px;
+    outline: none;
+  }
+  .signup input::placeholder { color: #f2f0ea; opacity: 1; }
+  .signup button {
+    background: none;
+    border: 0;
+    padding: 10px 0 10px 14px;
+    color: var(--paper);
+    font: inherit;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .signup button:hover { opacity: 0.7; }
+  .signup input, .signup input::placeholder, .signup button, .signup .msg {
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.042em;
     -webkit-text-stroke: 0.02em currentColor;
     filter: url(#ink);
   }
-  .contact a:hover { opacity: 0.7; }
+  .signup .note {
+    margin-top: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: rgba(242,240,234,0.85);
+  }
+  .signup .msg { margin-top: 12px; font-size: 15px; color: var(--paper); min-height: 1em; }
+  .signup.done form, .signup.done .note { display: none; }
 
   @media (max-width: 420px) {
     .countdown { gap: 14px; }
@@ -160,6 +189,14 @@
     <h1 style="width:100%"><img class="logo" src="assets/logo-white.png" alt="GIACO MINO"></h1>
     <p class="hero-cta">Drop 31:01</p>
     <div class="countdown" id="countdown" role="timer" aria-live="off"></div>
+    <div class="signup" id="signup-box">
+      <form id="signup" novalidate>
+        <input type="email" id="email" placeholder="Email for the drop" autocomplete="email" aria-label="Email" required>
+        <button type="submit">Notify me</button>
+      </form>
+      <p class="note">Drop news from Giaco Mino. Unsubscribe anytime.</p>
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+    </div>
   </div>
 </main>
 
@@ -193,6 +230,31 @@
   if (render()) {
     const tick = setInterval(() => { if (!render()) clearInterval(tick); }, 1000);
   }
+
+  /* Signup -> Klaviyo client API, list "Email List" (same as the shop). */
+  const KLAVIYO_PUBLIC_KEY = "X7mELY";
+  const KLAVIYO_LIST_ID    = "Sg8M8k";
+  const form = document.getElementById("signup");
+  const msg  = document.getElementById("msg");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.textContent = "Enter a valid email."; return; }
+    msg.textContent = "";
+    try {
+      const res = await fetch(`https://a.klaviyo.com/client/subscriptions/?company_id=${KLAVIYO_PUBLIC_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "revision": "2024-10-15" },
+        body: JSON.stringify({ data: { type: "subscription",
+          attributes: { custom_source: "Countdown", profile: { data: { type: "profile", attributes: { email } } } },
+          relationships: { list: { data: { type: "list", id: KLAVIYO_LIST_ID } } } } })
+      });
+      if (res.ok || res.status === 202) {
+        document.getElementById("signup-box").classList.add("done");
+        msg.textContent = "You're on the list.";
+      } else { msg.textContent = "Something went wrong. Try again."; }
+    } catch { msg.textContent = "Something went wrong. Try again."; }
+  });
 </script>
 </body>
 </html>
