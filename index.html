@@ -168,6 +168,27 @@
     .countdown .unit { min-width: 36px; }
     .countdown .n { font-size: 24px; }
   }
+
+  /* ==========================================================
+     ACCESSIBILITY (23 Nov 2026): visible keyboard focus, a pause
+     control for the looping hero video (WCAG 2.2.2), and reduced
+     motion respected. Keep this block last in the stylesheet.
+     ========================================================== */
+  a:focus-visible, button:focus-visible, summary:focus-visible,
+  [role="link"]:focus-visible, .swipe:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+  input:focus-visible, textarea:focus-visible { outline: 2px solid currentColor !important; outline-offset: 4px; }
+  .motion-toggle {
+    position: absolute; right: 10px; bottom: 10px; z-index: 5;
+    background: none; border: 0; padding: 12px; cursor: pointer;
+    color: #f2f0ea; opacity: 0.75;
+    font: 700 11px/1 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .motion-toggle:hover, .motion-toggle:focus-visible { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto !important; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
 </style>
 </head>
 <body>
@@ -187,6 +208,7 @@
   </video>
 
   <div class="veil"></div>
+  <button type="button" class="motion-toggle" id="motion-toggle" aria-label="Pause background video">Pause</button>
 
   <div class="hero">
     <h1 style="width:100%"><img class="logo" src="assets/logo-white.png" alt="GIACO MINO"></h1>
@@ -194,7 +216,7 @@
     <div class="countdown" id="countdown" role="timer" aria-live="off"></div>
     <div class="signup" id="signup-box">
       <form id="signup" novalidate>
-        <input type="email" id="email" placeholder="Email for the drop" autocomplete="email" aria-label="Email" required>
+        <input type="email" id="email" placeholder="Email for the drop" autocomplete="email" aria-label="Email address" required>
         <button type="submit">Notify me</button>
       </form>
       <p class="note">10% off your first order. Drop news from Giaco Mino, unsubscribe anytime.</p>
@@ -258,6 +280,20 @@
       } else { msg.textContent = "Something went wrong. Try again."; }
     } catch { msg.textContent = "Something went wrong. Try again."; }
   });
+
+  /* Hero video: pause control + reduced motion (accessibility, 23 Nov 2026). */
+  (function () {
+    var v = document.querySelector(".hero-media video"), b = document.getElementById("motion-toggle");
+    if (!v || !b) return;
+    var hold = function (h) {
+      v.dataset.held = h ? "1" : "";
+      if (h) v.pause(); else { var p = v.play(); if (p) p.catch(function () {}); }
+      b.textContent = h ? "Play" : "Pause";
+      b.setAttribute("aria-label", h ? "Play background video" : "Pause background video");
+    };
+    b.addEventListener("click", function () { hold(!v.dataset.held); });
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) { v.removeAttribute("autoplay"); hold(true); }
+  })();
 </script>
 </body>
 </html>
